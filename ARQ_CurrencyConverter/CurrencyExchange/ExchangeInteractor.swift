@@ -38,7 +38,7 @@ class ExchangeInteractor {
 
 extension ExchangeInteractor: ExchangeInteractorInputProtocol {
     func fetchCurrencyExchangeRates() {
-        networkService.fetchRates(currencies: [.COP, .ARS]) { [weak self] result in
+        networkService.fetchRates(currencies: availableCurrencies) { [weak self] result in
             switch result {
             case .success(let response):
                 print(response)
@@ -74,7 +74,7 @@ extension ExchangeInteractor: ExchangeInteractorInputProtocol {
     }
     
     func processResponse(availableCurrencies response: [String]) {
-        let currencies = response.map { Currency(rawValue: $0) }
         availableCurrencies = response.compactMap { Currency(rawValue: $0) }
+        fetchCurrencyExchangeRates()
     }
 }
