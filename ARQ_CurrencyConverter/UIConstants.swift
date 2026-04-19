@@ -15,6 +15,8 @@ enum UIConstants {
     static let containerSpacing: CGFloat = 24.0
     static let inputVerticalSpacing: CGFloat = 12.0
     
+    static let symbolValueSpacing: CGFloat = 4.0
+    
     // Corner Radii
     static let cornerRadiusLarge: CGFloat = 16.0
     static let swapButtonRadius: CGFloat = 20.0

@@ -131,6 +131,13 @@ class CurrencyInputField: UIView {
         return chevron
     }()
     
+    let symbolLabel: UILabel = {
+        let label = UILabel()
+        label.font = UIConstants.valueFont
+        
+        return label
+    }()
+    
     let textField: UITextField = {
         let tf = UITextField()
         tf.textAlignment = .right
@@ -167,7 +174,7 @@ class CurrencyInputField: UIView {
         
         currencyLabel.text = "\(flag) \(code)"
         chevron.isHidden = !showChevron
-//        textField.text = "\(symbol) \(value)"
+        symbolLabel.text = symbol
         textField.text = value
     }
     
@@ -200,7 +207,12 @@ extension CurrencyInputField {
         textField.addTarget(self, action: #selector(textDidChange), for: .editingChanged)
         textField.addTarget(self, action: #selector(textDidChange), for: .editingDidEnd)
         
-        let mainStack = UIStackView(arrangedSubviews: [currencyStack, textField])
+        let valueStack = UIStackView(arrangedSubviews: [symbolLabel, textField])
+        valueStack.spacing = UIConstants.symbolValueSpacing
+        valueStack.alignment = .center
+        valueStack.distribution = .fill
+        
+        let mainStack = UIStackView(arrangedSubviews: [currencyStack, valueStack])
         mainStack.translatesAutoresizingMaskIntoConstraints = false
         mainStack.alignment = .center
         mainStack.distribution = .equalSpacing

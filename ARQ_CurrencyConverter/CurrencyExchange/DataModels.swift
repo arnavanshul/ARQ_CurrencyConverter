@@ -73,6 +73,8 @@ enum Currency: String {
         switch self {
         case .EURc:
             return "€"
+        case .BRL:
+            return "R$"
         default:
             return "$"
         }
