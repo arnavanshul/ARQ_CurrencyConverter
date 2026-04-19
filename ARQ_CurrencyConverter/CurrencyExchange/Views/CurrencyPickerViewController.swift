@@ -20,11 +20,12 @@ class CurrencyPickerViewController: UIViewController, UITableViewDelegate, UITab
         super.viewDidLoad()
         setupUI()
         
-        navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "xmark"),
-                                                            style: .plain,
-                                                            target: self,
-                                                            action: #selector(dismissPicker))
-        navigationItem.rightBarButtonItem?.tintColor = .label
+//        navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "xmark"),
+//                                                            style: .plain,
+//                                                            target: self,
+//                                                            action: #selector(dismissPicker))
+//        navigationItem.rightBarButtonItem?.tintColor = .label
+        navigationController?.setNavigationBarHidden(true, animated: false)
     }
     
     @objc private func dismissPicker() {
@@ -33,9 +34,7 @@ class CurrencyPickerViewController: UIViewController, UITableViewDelegate, UITab
 
     private func setupUI() {
         view.backgroundColor = .systemBackground
-        title = "Choose currency"
         
-        // 1. FIX: Register the correct Custom Cell class
         tableView.register(CurrencyPickerCell.self, forCellReuseIdentifier: CurrencyPickerCell.reuseIdentifier)
         
         tableView.delegate = self
@@ -44,7 +43,6 @@ class CurrencyPickerViewController: UIViewController, UITableViewDelegate, UITab
         
         view.addSubview(tableView)
         
-        // 2. FIX: Set constraints to pin the table to the view
         NSLayoutConstraint.activate([
             tableView.topAnchor.constraint(equalTo: view.topAnchor),
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
@@ -56,7 +54,61 @@ class CurrencyPickerViewController: UIViewController, UITableViewDelegate, UITab
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return currencies.count
     }
+    
+    // MARK: - TableView Header Styling
+    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+        let headerContainer = UIView()
+        headerContainer.backgroundColor = .clear
+        
+        let label = UILabel()
+        label.text = "Choose currency"
+        label.font = UIFont.systemFont(ofSize: 28, weight: .bold)
+        label.backgroundColor = .clear
+        label.textColor = .label
+        
+        let closeButton = UIButton(type: .system)
+        let config = UIImage.SymbolConfiguration(pointSize: 18, weight: .medium)
+        closeButton.setImage(UIImage(systemName: "xmark", withConfiguration: config), for: .normal)
+        closeButton.tintColor = .label
+        closeButton.backgroundColor = .secondarySystemBackground
+        closeButton.layer.cornerRadius = 15
+        
+        // Add the action
+        closeButton.addTarget(self, action: #selector(dismissPicker), for: .touchUpInside)
+        
+        // 3. Arrange them in a Stack
+        let stackView = UIStackView(arrangedSubviews: [label, closeButton])
+        stackView.axis = .horizontal
+        stackView.alignment = .center
+        stackView.distribution = .equalSpacing
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        
+        headerContainer.addSubview(stackView)
+        
+        NSLayoutConstraint.activate([
+            // Standard button sizing
+            closeButton.widthAnchor.constraint(equalToConstant: 30),
+            closeButton.heightAnchor.constraint(equalToConstant: 30),
+            
+            // Pin stack to container with padding
+            stackView.leadingAnchor.constraint(equalTo: headerContainer.leadingAnchor, constant: UIConstants.mainPadding),
+            stackView.trailingAnchor.constraint(equalTo: headerContainer.trailingAnchor, constant: -UIConstants.mainPadding),
+            stackView.topAnchor.constraint(equalTo: headerContainer.topAnchor, constant: UIConstants.mainPadding),
+            stackView.bottomAnchor.constraint(equalTo: headerContainer.bottomAnchor, constant: -(UIConstants.mainPadding))
+        ])
+        
+        return headerContainer
+    }
 
+    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+        return UITableView.automaticDimension
+    }
+
+    func tableView(_ tableView: UITableView, estimatedHeightForHeaderInSection section: Int) -> CGFloat {
+        return 80
+    }
+
+    // MARK: - TableView data population
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let cell = tableView.dequeueReusableCell(withIdentifier: CurrencyPickerCell.reuseIdentifier, for: indexPath) as? CurrencyPickerCell else {
             return UITableViewCell()
