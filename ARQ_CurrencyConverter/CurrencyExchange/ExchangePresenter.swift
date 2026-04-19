@@ -95,16 +95,28 @@ class ExchangePresenter {
         guard let currency = ticker.currency else { return }
         
         let initialSourceValue = 99.0
-        let rate = Double(ticker.bid) ?? 0.0
         
-        exchangeViewState = ExchangeViewState(baseCurrency: .USDc,
-                                              topCurrency: .USDc,
-                                              topAmount: initialSourceValue,
-                                              bottomCurrency: currency,
-                                              bottomAmount: initialSourceValue * rate,
-                                              rateToUse: .sellingQuote,
-                                              lastUpdatedField: .none,
-                                              tickers: tickers)
+        if var state = exchangeViewState {
+            if state.topCurrency == state.baseCurrency {
+                state.topAmount = initialSourceValue
+                state.bottomCurrency = currency
+                state.bottomAmount = initialSourceValue * (Double(ticker.bid) ?? 0.0)
+            } else {
+                state.bottomAmount = initialSourceValue
+                state.topCurrency = currency
+                state.topAmount = initialSourceValue * (Double(ticker.ask) ?? 0.0)
+            }
+            exchangeViewState = state
+        } else {
+            exchangeViewState = ExchangeViewState(baseCurrency: .USDc,
+                                                  topCurrency: .USDc,
+                                                  topAmount: initialSourceValue,
+                                                  bottomCurrency: currency,
+                                                  bottomAmount: initialSourceValue * (Double(ticker.bid) ?? 0.0),
+                                                  rateToUse: .sellingQuote,
+                                                  lastUpdatedField: .none,
+                                                  tickers: tickers)
+        }
         
         DispatchQueue.main.async {
             if let state = self.exchangeViewState {
