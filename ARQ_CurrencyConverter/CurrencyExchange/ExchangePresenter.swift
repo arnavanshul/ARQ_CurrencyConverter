@@ -94,20 +94,17 @@ class ExchangePresenter {
     func initializeView(for ticker: Ticker, tickers: [Ticker]) {
         guard let currency = ticker.currency else { return }
         
-        let initialSourceValue = 99.0
-        
         if var state = exchangeViewState {
             if state.topCurrency == state.baseCurrency {
-                state.topAmount = initialSourceValue
                 state.bottomCurrency = currency
-                state.bottomAmount = initialSourceValue * (Double(ticker.bid) ?? 0.0)
+                state.bottomAmount = state.topAmount * (Double(ticker.bid) ?? 0.0)
             } else {
-                state.bottomAmount = initialSourceValue
                 state.topCurrency = currency
-                state.topAmount = initialSourceValue * (Double(ticker.ask) ?? 0.0)
+                state.topAmount = state.bottomAmount * (Double(ticker.ask) ?? 0.0)
             }
             exchangeViewState = state
         } else {
+            let initialSourceValue = 99.00
             exchangeViewState = ExchangeViewState(baseCurrency: .USDc,
                                                   topCurrency: .USDc,
                                                   topAmount: initialSourceValue,

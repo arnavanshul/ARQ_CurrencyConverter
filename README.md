@@ -16,7 +16,7 @@ Exchange rate calculator iOS app
 * `USDc` is the base currency
 * First time default UI loads with the first currency in the list of exchange rates returned
 * The currency picker only shows the list of currencies for which exchange rates are available
-* Whenever a new currency is selected, the base currency always gets reset to 99
+* Whenever a new currency is selected, the base currency always remains the same and is treated as the source currency. Based on the position of the other currency (top field or bottom field), the buy or quote price for  is calculated
 
 ## 📁 Project Structure
 
