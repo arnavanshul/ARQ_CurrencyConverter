@@ -47,7 +47,7 @@ protocol ExchangePresenterProtocol: AnyObject {
 }
 
 class ExchangePresenter {
-    weak var view: CurrencyConverterViewProtocol?
+    weak var view: CurrencyExchangeViewProtocol?
     var interactor: ExchangeInteractorInputProtocol?
     var router: ExchangeRouterProtocol?
     
@@ -55,7 +55,7 @@ class ExchangePresenter {
     
     private var exchangeViewState: ExchangeViewState? = nil
     
-    init(view: CurrencyConverterViewProtocol? = nil, interactor: ExchangeInteractorInputProtocol? = nil, router: ExchangeRouterProtocol? = nil) {
+    init(view: CurrencyExchangeViewProtocol? = nil, interactor: ExchangeInteractorInputProtocol? = nil, router: ExchangeRouterProtocol? = nil) {
         self.view = view
         self.interactor = interactor
         self.router = router

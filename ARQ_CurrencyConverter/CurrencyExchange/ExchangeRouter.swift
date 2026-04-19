@@ -11,8 +11,8 @@ import UIKit
 protocol ExchangeRouterProtocol: AnyObject {
     static func createModule(networkService: NetworkServiceProtocol) -> UIViewController
     static func createModule() -> UIViewController
-    func navigateToDetails(from view: CurrencyConverterViewProtocol?)
-    func presentCurrencyPicker(from view: CurrencyConverterViewProtocol,
+    func navigateToDetails(from view: CurrencyExchangeViewProtocol?)
+    func presentCurrencyPicker(from view: CurrencyExchangeViewProtocol,
                                tickers: [Ticker],
                                currentCode: String,
                                presenter: ExchangePresenterProtocol)
@@ -20,7 +20,7 @@ protocol ExchangeRouterProtocol: AnyObject {
 
 class ExchangeRouter {
     static func createModule() -> UIViewController {
-        let view = CurrencyConverterViewController()
+        let view = CurrencyExchangeViewController()
         
         let presenter = ExchangePresenter()
         let interactor = ExchangeInteractor()
@@ -37,7 +37,7 @@ class ExchangeRouter {
     }
     
     static func createModule(networkService: NetworkServiceProtocol) -> UIViewController {
-        let view = CurrencyConverterViewController()
+        let view = CurrencyExchangeViewController()
         
         let presenter = ExchangePresenter()
         let interactor = ExchangeInteractor(networkService: networkService)
@@ -57,7 +57,7 @@ class ExchangeRouter {
 }
 
 extension ExchangeRouter: ExchangeRouterProtocol {
-    func presentCurrencyPicker(from view: CurrencyConverterViewProtocol,
+    func presentCurrencyPicker(from view: CurrencyExchangeViewProtocol,
                                tickers: [Ticker],
                                currentCode: String,
                                presenter: ExchangePresenterProtocol) {
@@ -82,7 +82,7 @@ extension ExchangeRouter: ExchangeRouterProtocol {
         (view as? UIViewController)?.present(nav, animated: true)
     }
     
-    func navigateToDetails(from view: (any CurrencyConverterViewProtocol)?) {
+    func navigateToDetails(from view: (any CurrencyExchangeViewProtocol)?) {
         
     }
 }

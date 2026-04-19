@@ -7,7 +7,7 @@
 
 import UIKit
 
-protocol CurrencyConverterViewProtocol: AnyObject {
+protocol CurrencyExchangeViewProtocol: AnyObject {
     func showLoading()
     func hideLoading()
     func showErrorMessage(message: String)
@@ -15,7 +15,7 @@ protocol CurrencyConverterViewProtocol: AnyObject {
     var exchangeView: ExchangeCalculatorView { get }
 }
 
-class CurrencyConverterViewController: UIViewController {
+class CurrencyExchangeViewController: UIViewController {
     var presenter: ExchangePresenterProtocol? = nil
     
     let exchangeView: ExchangeCalculatorView = {
@@ -83,7 +83,7 @@ class CurrencyConverterViewController: UIViewController {
     }
 }
 
-extension CurrencyConverterViewController : CurrencyConverterViewProtocol {
+extension CurrencyExchangeViewController : CurrencyExchangeViewProtocol {
     func showLoading() {
         loader.startAnimating()
         exchangeView.isHidden = true
