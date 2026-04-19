@@ -8,15 +8,22 @@
 import Foundation
 import UIKit
 
+enum FetchContext {
+    case availableCurrencies
+    case exchangeRates
+}
+
 protocol ExchangeInteractorInputProtocol: AnyObject {
     var output: ExchangeInteractorOutputProtocol? { get set }
-    func fetchCurrencyExchangeRates()
+    func fetchCurrencyExchangeRates(currencies: [Currency])
     func fetchAvailableCurrencies()
+    func fetchInitialData()
 }
 
 protocol ExchangeInteractorOutputProtocol: AnyObject {
     func didFetchRates(tickers: [Ticker]?)
-    func didFailWithError()
+    func didFetchAvailableCurrencies(currencies: [Currency])
+    func didFailToFetchData(error: NetworkError, context: FetchContext)
     func didFinishCalculation()
 }
 
@@ -37,8 +44,21 @@ class ExchangeInteractor {
 }
 
 extension ExchangeInteractor: ExchangeInteractorInputProtocol {
-    func fetchCurrencyExchangeRates() {
-        networkService.fetchRates(currencies: availableCurrencies) { [weak self] result in
+    func fetchInitialData() {
+        networkService.fetchAvailableCurrencies { [weak self] result in
+            switch result {
+            case .success(let codes):
+                self?.availableCurrencies = codes.compactMap { Currency(rawValue: $0) }
+                self?.fetchCurrencyExchangeRates(currencies: self?.availableCurrencies ?? [])
+            case .failure(let error):
+                self?.output?.didFailToFetchData(error: error, context: .availableCurrencies)
+            }
+        }
+    }
+    
+    func fetchCurrencyExchangeRates(currencies: [Currency]) {
+        let currenciesToFetch = currencies.isEmpty ? availableCurrencies : currencies
+        networkService.fetchRates(currencies: currencies) { [weak self] result in
             switch result {
             case .success(let response):
                 print(response)
@@ -46,20 +66,7 @@ extension ExchangeInteractor: ExchangeInteractorInputProtocol {
                 self?.output?.didFetchRates(tickers: self?.tickers)
             case .failure(let error):
                 print(error)
-                self?.output?.didFailWithError()
-            }
-        }
-    }
-    
-    func fetchAvailableCurrencies() {
-        networkService.fetchAvailableCurrencies { [weak self] result in
-            switch result {
-            case .success(let response):
-                print(response)
-                self?.processResponse(availableCurrencies: response)
-            case .failure(let error):
-                print(error)
-                self?.output?.didFailWithError()
+                self?.output?.didFailToFetchData(error: error, context: .exchangeRates)
             }
         }
     }
@@ -73,8 +80,22 @@ extension ExchangeInteractor: ExchangeInteractorInputProtocol {
         }
     }
     
+    func fetchAvailableCurrencies() {
+        networkService.fetchAvailableCurrencies { [weak self] result in
+            switch result {
+            case .success(let response):
+                print(response)
+                self?.processResponse(availableCurrencies: response)
+                self?.output?.didFetchAvailableCurrencies(currencies: self?.availableCurrencies ?? [])
+            case .failure(let error):
+                print(error)
+                self?.output?.didFailToFetchData(error: error, context: .availableCurrencies)
+            }
+        }
+    }
+    
     func processResponse(availableCurrencies response: [String]) {
         availableCurrencies = response.compactMap { Currency(rawValue: $0) }
-        fetchCurrencyExchangeRates()
+        fetchCurrencyExchangeRates(currencies: availableCurrencies)
     }
 }

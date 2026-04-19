@@ -96,7 +96,7 @@ extension CurrencyConverterViewController : CurrencyConverterViewProtocol {
     }
     
     func hideLoading() {
-        
+        loader.stopAnimating()
     }
     
     func showErrorMessage(error: any Error) {

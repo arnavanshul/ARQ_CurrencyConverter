@@ -219,7 +219,11 @@ extension ExchangePresenter: ExchangeInteractorOutputProtocol {
         }
     }
     
-    func didFailWithError() {
+    func didFetchAvailableCurrencies(currencies: [Currency]) {
+        
+    }
+    
+    func didFailToFetchData(error: NetworkError, context: FetchContext) {
         
     }
     
