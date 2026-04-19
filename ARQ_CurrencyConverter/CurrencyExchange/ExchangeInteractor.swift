@@ -24,7 +24,6 @@ protocol ExchangeInteractorOutputProtocol: AnyObject {
     func didFetchRates(tickers: [Ticker]?)
     func didFetchAvailableCurrencies(currencies: [Currency])
     func didFailToFetchData(error: NetworkError, context: FetchContext)
-    func didFinishCalculation()
 }
 
 class ExchangeInteractor {

@@ -93,18 +93,16 @@ class CurrencyPickerViewController: UIViewController, UITableViewDelegate, UITab
 class CurrencyPickerCell: UITableViewCell {
     static let reuseIdentifier = "CurrencyCell"
     
-    // Left side: Flag + Code
     private let infoStack: UIStackView = {
         let stack = UIStackView()
-        stack.spacing = 12
+        stack.spacing = UIConstants.inputVerticalSpacing
         stack.alignment = .center
         return stack
     }()
     
-    let flagLabel = UILabel() // Use your enum's .flag here
-    let codeLabel = UILabel() // Use your enum's .rawValue here
+    let flagLabel = UILabel()
+    let codeLabel = UILabel()
     
-    // Right side: The Radio Circle
     let selectionImageView: UIImageView = {
         let iv = UIImageView()
         iv.contentMode = .scaleAspectFit
@@ -117,9 +115,8 @@ class CurrencyPickerCell: UITableViewCell {
     }
     
     private func setupLayout() {
-        // Style labels
-        codeLabel.font = .systemFont(ofSize: 16, weight: .semibold)
-        flagLabel.font = .systemFont(ofSize: 24)
+        codeLabel.font = UIConstants.currencyLabelFont
+        flagLabel.font = UIConstants.titleFont
         
         contentView.addSubview(infoStack)
         contentView.addSubview(selectionImageView)
@@ -131,13 +128,13 @@ class CurrencyPickerCell: UITableViewCell {
         selectionImageView.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([
-            infoStack.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+            infoStack.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: UIConstants.mainPadding),
             infoStack.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
             
-            selectionImageView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+            selectionImageView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -(UIConstants.mainPadding)),
             selectionImageView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            selectionImageView.widthAnchor.constraint(equalToConstant: 24),
-            selectionImageView.heightAnchor.constraint(equalToConstant: 24)
+            selectionImageView.widthAnchor.constraint(equalToConstant: UIConstants.containerSpacing),
+            selectionImageView.heightAnchor.constraint(equalToConstant: UIConstants.containerSpacing)
         ])
     }
     

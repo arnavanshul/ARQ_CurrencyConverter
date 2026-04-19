@@ -37,8 +37,6 @@ struct TickerResponse: Decodable {
 }
 
 class NetworkService: NetworkServiceProtocol {
-//    private let endpoint = "https://api.dolarapp.dev/v1/tickers"
-    
     private func buildURL(for endpoint: APIEndpoint, queryItems: [URLQueryItem]? = nil) -> URL? {
         var components = URLComponents()
         components.scheme = APIConfig.scheme
@@ -91,7 +89,7 @@ class NetworkService: NetworkServiceProtocol {
         }
         
 #if DEBUG
-        // Simulate a successful API response for testing
+//        let staticDebugResponse = ["MXN", "ARS", "BRL", "COP", "EURc"]
         let staticDebugResponse = ["MXN", "ARS", "BRL", "COP"]
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             completion(.success(staticDebugResponse))

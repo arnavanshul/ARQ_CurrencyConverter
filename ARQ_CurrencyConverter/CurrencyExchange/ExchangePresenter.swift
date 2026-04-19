@@ -8,12 +8,6 @@
 import Foundation
 import UIKit
 
-enum ExchangeDataAvailabilityState {
-    case loading
-    case available
-    case error
-}
-
 enum TransactionType {
     //  Base -> Quote
     //  Use `ask` price
@@ -48,6 +42,7 @@ protocol ExchangePresenterProtocol: AnyObject {
     func viewDidLoad()
     func didTapSwapButton()
     func didChangeAmount(updatedField: UpdatedField, newText: String)
+    func didTapCurrency(updatedField: UpdatedField)
     func didSelectCurrency(ticker: Ticker)
 }
 
@@ -68,7 +63,7 @@ class ExchangePresenter {
     
     func setupViewListeners() {
         view?.exchangeView.topCurrencyField.onCurrencyPressed = { [weak self] in
-            self?.didTapTopCurrency()
+            self?.didTapCurrency(updatedField: .top)
         }
         
         view?.exchangeView.topCurrencyField.onAmountChanged = { [weak self] text in
@@ -76,7 +71,7 @@ class ExchangePresenter {
         }
         
         view?.exchangeView.bottomCurrencyField.onCurrencyPressed = { [weak self] in
-            self?.didTapBottomCurrency()
+            self?.didTapCurrency(updatedField: .bottom)
         }
         
         view?.exchangeView.bottomCurrencyField.onAmountChanged = { [weak self] text in
@@ -107,18 +102,36 @@ class ExchangePresenter {
             if let state = self.exchangeViewState {
                 self.view?.hideLoading()
                 self.view?.hideErrorMessage()
-                self.view?.exchangeView.isHidden = false
-                self.updateView(with: state, ticker: ticker)
+                self.updateExchangeView(with: state, ticker: ticker)
             }
         }
     }
 }
 
-extension ExchangePresenter: ExchangePresenterProtocol{
+extension ExchangePresenter: ExchangePresenterProtocol {
     func viewDidLoad() {
         view?.showLoading()
         interactor?.fetchInitialData()
         setupViewListeners()
+    }
+    
+    func didTapCurrency(updatedField: UpdatedField) {
+        switch updatedField {
+        case .top:
+            guard let view, let state = exchangeViewState, state.topCurrency != state.baseCurrency else { return }
+            router?.presentCurrencyPicker(from: view,
+                                          tickers: state.tickers,
+                                          currentCode: state.topCurrency.rawValue,
+                                          presenter: self)
+        case .bottom:
+            guard let view, let state = exchangeViewState, state.bottomCurrency != state.baseCurrency else { return }
+            router?.presentCurrencyPicker(from: view,
+                                          tickers: state.tickers,
+                                          currentCode: state.bottomCurrency.rawValue,
+                                          presenter: self)
+        case .none:
+            return
+        }
     }
     
     func didSelectCurrency(ticker: Ticker) {
@@ -155,7 +168,7 @@ extension ExchangePresenter: ExchangePresenterProtocol{
         }
         
         self.exchangeViewState = state
-        updateView(with: state, ticker: ticker)
+        updateExchangeView(with: state, ticker: ticker)
     }
     
     func didChangeAmount(updatedField: UpdatedField, newText: String) {
@@ -184,13 +197,15 @@ extension ExchangePresenter: ExchangePresenterProtocol{
             }
         }
         exchangeViewState = state
-        updateView(with: state, ticker: ticker)
+        updateExchangeView(with: state, ticker: ticker)
     }
 }
 
 extension ExchangePresenter {
-    private func updateView(with state: ExchangeViewState, ticker: Ticker) {
+    private func updateExchangeView(with state: ExchangeViewState, ticker: Ticker) {
         guard let view = view else { return }
+        
+        view.exchangeView.isHidden = false
         
         let rateStr = state.rateToUse == .buyingQuote ? ticker.ask : ticker.bid
         view.exchangeView.rateLabel.text = "1 \(state.baseCurrency.rawValue) = \(rateStr) \(state.topCurrency == state.baseCurrency ? state.bottomCurrency.rawValue : state.topCurrency.rawValue)"
@@ -229,42 +244,20 @@ extension ExchangePresenter: ExchangeInteractorOutputProtocol {
         initializeView(for: firstTicker, tickers: tickers)
     }
     
-    func didFetchAvailableCurrencies(currencies: [Currency]) {
-        
-    }
+    func didFetchAvailableCurrencies(currencies: [Currency]) {}
     
     func didFailToFetchData(error: NetworkError, context: FetchContext) {
         view?.hideLoading()
-        let message: String
         
+        let message: String
         switch context {
         case .availableCurrencies:
-            message = "Could not load the list of currencies. \(error.localizedDescription)"
+            message = "Could not load the list of currencies. Try again later. \(error.localizedDescription)"
         case .exchangeRates:
-            message = "could not update the latest prices. \(error.localizedDescription)"
+            message = "Could not update the latest prices. Try again later \(error.localizedDescription)"
         }
         
         view?.showErrorMessage(message: message)
-    }
-    
-    func didFinishCalculation() {
-        
-    }
-    
-    func didTapTopCurrency() {
-        guard let view, let state = exchangeViewState, state.topCurrency != state.baseCurrency else { return }
-        router?.presentCurrencyPicker(from: view,
-                                      tickers: state.tickers,
-                                      currentCode: state.topCurrency.rawValue,
-                                      presenter: self)
-    }
-    
-    func didTapBottomCurrency() {
-        guard let view, let state = exchangeViewState, state.bottomCurrency != state.baseCurrency else { return }
-        router?.presentCurrencyPicker(from: view,
-                                      tickers: state.tickers,
-                                      currentCode: state.bottomCurrency.rawValue,
-                                      presenter: self)
     }
 }
 

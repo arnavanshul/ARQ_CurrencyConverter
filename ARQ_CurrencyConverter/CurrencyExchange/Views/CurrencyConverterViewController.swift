@@ -35,7 +35,7 @@ class CurrencyConverterViewController: UIViewController {
         let label = UILabel()
         label.textColor = .systemRed
         label.textAlignment = .center
-        label.font = .systemFont(ofSize: 14, weight: .medium)
+        label.font = .systemFont(ofSize: UIConstants.valueFont.pointSize, weight: .medium)
         label.numberOfLines = 0
         label.isHidden = true
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -58,12 +58,7 @@ class CurrencyConverterViewController: UIViewController {
         presenter?.viewDidLoad()
     }
     
-    override func viewDidAppear(_ animated: Bool) {
-//        let error = NSError(domain: "Network Unavailable Domain", code: 500, userInfo: [:])
-//        self.showErrorMessage(error: error)
-        
-        print("hello")
-    }
+    override func viewDidAppear(_ animated: Bool) {}
     
     private func setupConstraints() {
         NSLayoutConstraint.activate([
@@ -76,10 +71,10 @@ class CurrencyConverterViewController: UIViewController {
             loader.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             loader.centerYAnchor.constraint(equalTo: view.centerYAnchor),
             
-            // Position the error label (e.g., at the bottom of the screen)
-            errorLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            errorLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            errorLabel.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20)
+            // Center the error label
+            errorLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: UIConstants.mainPadding),
+            errorLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -(UIConstants.mainPadding)),
+            errorLabel.centerYAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerYAnchor)
         ])
     }
 
