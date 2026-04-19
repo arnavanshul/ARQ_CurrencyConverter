@@ -153,7 +153,7 @@ extension ExchangePresenter: ExchangePresenterProtocol {
         state.rateToUse = (state.rateToUse == .buyingQuote) ? .sellingQuote : .buyingQuote
         
         let quoteCurrency = (state.topCurrency == state.baseCurrency) ? state.bottomCurrency : state.topCurrency
-        guard let ticker = state.tickers.first(where: { $0.currency == quoteCurrency }) else { return }
+        guard let ticker = exchangeRates[quoteCurrency] else { return }
         
         let ask = Double(ticker.ask) ?? 0.0
         let bid = Double(ticker.bid) ?? 0.0
@@ -180,10 +180,10 @@ extension ExchangePresenter: ExchangePresenterProtocol {
     
     func didChangeAmount(updatedField: UpdatedField, newText: String) {
         guard var state = exchangeViewState else { return }
-        
-        let updatedValue = Double(newText) ?? 0.0
+        let sanitizedText = newText.replacingOccurrences(of: ",", with: "")
+        let updatedValue = amountFormatter.number(from: sanitizedText)?.doubleValue ?? 0.0
         let quoteCurrency = (state.topCurrency == state.baseCurrency) ? state.bottomCurrency : state.topCurrency
-        guard let ticker = state.tickers.first(where: { $0.currency == quoteCurrency }) else { return }
+        guard let ticker = exchangeRates[quoteCurrency] else { return }
         
         if updatedField == .top {
             state.topAmount = updatedValue
