@@ -280,6 +280,16 @@ extension ExchangePresenter: ExchangeInteractorOutputProtocol {
 // MARK: Convenience methods
 extension ExchangePresenter {
     func format(value: Double, maxPrecision: Int) -> String {
+        let isWholeNumber = value.truncatingRemainder(dividingBy: 1) == 0
+        if isWholeNumber {
+            self.amountFormatter.minimumFractionDigits = 0
+            self.amountFormatter.maximumFractionDigits = maxPrecision
+        } else {
+            // 2. If it has ANY decimals (e.g., 10.1 or 10.05), show 2 to 6 places
+            self.amountFormatter.minimumFractionDigits = 2
+            self.amountFormatter.maximumFractionDigits = maxPrecision
+        }
+        
         self.amountFormatter.maximumFractionDigits = maxPrecision
         return self.amountFormatter.string(from: NSNumber(value: value)) ?? "\(value)"
     }
