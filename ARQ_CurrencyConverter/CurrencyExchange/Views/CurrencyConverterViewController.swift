@@ -10,7 +10,7 @@ import UIKit
 protocol CurrencyConverterViewProtocol: AnyObject {
     func showLoading()
     func hideLoading()
-    func showErrorMessage(error: Error)
+    func showErrorMessage(message: String)
     func hideErrorMessage()
     var exchangeView: ExchangeCalculatorView { get }
 }
@@ -97,18 +97,19 @@ extension CurrencyConverterViewController : CurrencyConverterViewProtocol {
     
     func hideLoading() {
         loader.stopAnimating()
+        loader.isHidden = true
     }
     
-    func showErrorMessage(error: any Error) {
+    func showErrorMessage(message: String) {
         exchangeView.isHidden = true
         loader.stopAnimating()
         loader.isHidden = true
         errorLabel.isHidden = false
-        errorLabel.text = error.localizedDescription
+        errorLabel.text = message
     }
     
     func hideErrorMessage() {
-        
+        errorLabel.isHidden = true
     }
 }
 

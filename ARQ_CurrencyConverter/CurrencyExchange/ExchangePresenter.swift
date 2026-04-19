@@ -56,6 +56,8 @@ class ExchangePresenter {
     var interactor: ExchangeInteractorInputProtocol?
     var router: ExchangeRouterProtocol?
     
+    var exchangeRates: [Currency : Ticker] = [:]
+    
     private var exchangeViewState: ExchangeViewState? = nil
     
     init(view: CurrencyConverterViewProtocol? = nil, interactor: ExchangeInteractorInputProtocol? = nil, router: ExchangeRouterProtocol? = nil) {
@@ -85,18 +87,42 @@ class ExchangePresenter {
             self?.didTapSwapButton()
         }
     }
+    
+    func initializeView(for ticker: Ticker, tickers: [Ticker]) {
+        guard let currency = ticker.currency else { return }
+        
+        let initialSourceValue = 99.0
+        let rate = Double(ticker.bid) ?? 0.0
+        
+        exchangeViewState = ExchangeViewState(baseCurrency: .USDc,
+                                              topCurrency: .USDc,
+                                              topAmount: initialSourceValue,
+                                              bottomCurrency: currency,
+                                              bottomAmount: initialSourceValue * rate,
+                                              rateToUse: .sellingQuote,
+                                              lastUpdatedField: .none,
+                                              tickers: tickers)
+        
+        DispatchQueue.main.async {
+            if let state = self.exchangeViewState {
+                self.view?.hideLoading()
+                self.view?.hideErrorMessage()
+                self.view?.exchangeView.isHidden = false
+                self.updateView(with: state, ticker: ticker)
+            }
+        }
+    }
 }
 
 extension ExchangePresenter: ExchangePresenterProtocol{
     func viewDidLoad() {
-        interactor?.fetchAvailableCurrencies()
-        interactor?.fetchCurrencyExchangeRates()
+        view?.showLoading()
+        interactor?.fetchInitialData()
         setupViewListeners()
     }
     
     func didSelectCurrency(ticker: Ticker) {
         guard let state = exchangeViewState else { return }
-        
         initializeView(for: ticker, tickers: state.tickers)
     }
     
@@ -194,29 +220,13 @@ extension ExchangePresenter: ExchangeInteractorOutputProtocol {
             return
         }
         
-        initializeView(for: firstTicker, tickers: tickers)
-    }
-    
-    func initializeView(for ticker: Ticker, tickers: [Ticker]) {
-        guard let currency = ticker.currency else { return }
-        
-        let initialSourceValue = 99.0
-        let rate = Double(ticker.bid) ?? 0.0
-        
-        exchangeViewState = ExchangeViewState(baseCurrency: .USDc,
-                                              topCurrency: .USDc,
-                                              topAmount: initialSourceValue,
-                                              bottomCurrency: currency,
-                                              bottomAmount: initialSourceValue * rate,
-                                              rateToUse: .sellingQuote,
-                                              lastUpdatedField: .none,
-                                              tickers: tickers)
-        
-        DispatchQueue.main.async {
-            if let state = self.exchangeViewState {
-                self.updateView(with: state, ticker: ticker)
+        for ticker in tickers {
+            if let currency = ticker.currency {
+                exchangeRates[currency] = ticker
             }
         }
+        
+        initializeView(for: firstTicker, tickers: tickers)
     }
     
     func didFetchAvailableCurrencies(currencies: [Currency]) {
@@ -224,7 +234,17 @@ extension ExchangePresenter: ExchangeInteractorOutputProtocol {
     }
     
     func didFailToFetchData(error: NetworkError, context: FetchContext) {
+        view?.hideLoading()
+        let message: String
         
+        switch context {
+        case .availableCurrencies:
+            message = "Could not load the list of currencies. \(error.localizedDescription)"
+        case .exchangeRates:
+            message = "could not update the latest prices. \(error.localizedDescription)"
+        }
+        
+        view?.showErrorMessage(message: message)
     }
     
     func didFinishCalculation() {

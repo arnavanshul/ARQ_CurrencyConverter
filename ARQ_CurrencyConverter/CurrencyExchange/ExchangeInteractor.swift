@@ -29,7 +29,6 @@ protocol ExchangeInteractorOutputProtocol: AnyObject {
 
 class ExchangeInteractor {
     weak var output: ExchangeInteractorOutputProtocol?
-    
     private let networkService: NetworkServiceProtocol
     
     var tickers: [Ticker] = []
@@ -40,7 +39,6 @@ class ExchangeInteractor {
     init(networkService: NetworkServiceProtocol = NetworkService()) {
         self.networkService = networkService
     }
-    
 }
 
 extension ExchangeInteractor: ExchangeInteractorInputProtocol {
@@ -58,7 +56,7 @@ extension ExchangeInteractor: ExchangeInteractorInputProtocol {
     
     func fetchCurrencyExchangeRates(currencies: [Currency]) {
         let currenciesToFetch = currencies.isEmpty ? availableCurrencies : currencies
-        networkService.fetchRates(currencies: currencies) { [weak self] result in
+        networkService.fetchRates(currencies: currenciesToFetch) { [weak self] result in
             switch result {
             case .success(let response):
                 print(response)
@@ -96,6 +94,5 @@ extension ExchangeInteractor: ExchangeInteractorInputProtocol {
     
     func processResponse(availableCurrencies response: [String]) {
         availableCurrencies = response.compactMap { Currency(rawValue: $0) }
-        fetchCurrencyExchangeRates(currencies: availableCurrencies)
     }
 }
