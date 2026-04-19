@@ -51,6 +51,14 @@ class ExchangePresenter {
     var interactor: ExchangeInteractorInputProtocol?
     var router: ExchangeRouterProtocol?
     
+    let amountFormatter: NumberFormatter = {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.minimumFractionDigits = 0
+        formatter.roundingMode = .halfUp
+        return formatter
+    }()
+    
     var exchangeRates: [Currency : Ticker] = [:]
     
     private var exchangeViewState: ExchangeViewState? = nil
@@ -210,10 +218,18 @@ extension ExchangePresenter {
         let rateStr = state.rateToUse == .buyingQuote ? ticker.ask : ticker.bid
         view.exchangeView.rateLabel.text = "1 \(state.baseCurrency.rawValue) = \(rateStr) \(state.topCurrency == state.baseCurrency ? state.bottomCurrency.rawValue : state.topCurrency.rawValue)"
         
+        let rawRateStr = state.rateToUse == .buyingQuote ? ticker.ask : ticker.bid
+        var formattedRate = rawRateStr // Fallback to raw string
+        if let rateDouble = Double(rawRateStr) {
+            formattedRate = format(value: rateDouble, maxPrecision: 6)
+        }
+        let quoteCurrencyCode = state.topCurrency == state.baseCurrency ? state.bottomCurrency.rawValue : state.topCurrency.rawValue
+        view.exchangeView.rateLabel.text = "1 \(state.baseCurrency.rawValue) = \(formattedRate) \(quoteCurrencyCode)"
+        
         if !view.exchangeView.topCurrencyField.isChangingAmount {
             view.exchangeView.topCurrencyField.updateFor(flag: state.topCurrency.flag,
                                                          code: state.topCurrency.rawValue,
-                                                         value: String(format: "%.2f", state.topAmount),
+                                                         value: self.format(value: state.topAmount, maxPrecision: 2),
                                                          symbol: state.topCurrency.currencySymbol,
                                                          showChevron: state.topCurrency != state.baseCurrency)
         }
@@ -221,7 +237,7 @@ extension ExchangePresenter {
         if !view.exchangeView.bottomCurrencyField.isChangingAmount {
             view.exchangeView.bottomCurrencyField.updateFor(flag: state.bottomCurrency.flag,
                                                             code: state.bottomCurrency.rawValue,
-                                                            value: String(format: "%.2f", state.bottomAmount),
+                                                            value: self.format(value: state.bottomAmount, maxPrecision: 2),
                                                             symbol: state.bottomCurrency.currencySymbol,
                                                             showChevron: state.bottomCurrency != state.baseCurrency)
         }
@@ -261,4 +277,10 @@ extension ExchangePresenter: ExchangeInteractorOutputProtocol {
     }
 }
 
-
+// MARK: Convenience methods
+extension ExchangePresenter {
+    func format(value: Double, maxPrecision: Int) -> String {
+        self.amountFormatter.maximumFractionDigits = maxPrecision
+        return self.amountFormatter.string(from: NSNumber(value: value)) ?? "\(value)"
+    }
+}
