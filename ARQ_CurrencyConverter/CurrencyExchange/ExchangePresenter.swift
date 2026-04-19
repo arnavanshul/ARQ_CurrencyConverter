@@ -120,7 +120,6 @@ extension ExchangePresenter: ExchangePresenterProtocol {
     func viewDidLoad() {
         view?.showLoading()
         interactor?.fetchInitialData()
-        setupViewListeners()
     }
     
     func didTapCurrency(updatedField: UpdatedField) {

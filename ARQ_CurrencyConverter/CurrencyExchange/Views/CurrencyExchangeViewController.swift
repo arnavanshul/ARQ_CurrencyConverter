@@ -55,6 +55,7 @@ class CurrencyExchangeViewController: UIViewController {
         tap.cancelsTouchesInView = false // Allows buttons to still work
         view.addGestureRecognizer(tap)
         
+        setupUIListeners()
         presenter?.viewDidLoad()
     }
     
@@ -76,6 +77,28 @@ class CurrencyExchangeViewController: UIViewController {
             errorLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -(UIConstants.mainPadding)),
             errorLabel.centerYAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerYAnchor)
         ])
+    }
+    
+    func setupUIListeners() {
+        exchangeView.topCurrencyField.onCurrencyPressed = { [weak self] in
+            self?.presenter?.didTapCurrency(updatedField: .top)
+        }
+        
+        exchangeView.topCurrencyField.onAmountChanged = { [weak self] text in
+            self?.presenter?.didChangeAmount(updatedField: .top, newText: text)
+        }
+        
+        exchangeView.bottomCurrencyField.onCurrencyPressed = { [weak self] in
+            self?.presenter?.didTapCurrency(updatedField: .bottom)
+        }
+        
+        exchangeView.bottomCurrencyField.onAmountChanged = { [weak self] text in
+            self?.presenter?.didChangeAmount(updatedField: .bottom, newText: text)
+        }
+        
+        exchangeView.onSwapButtonPressed = { [weak self] in
+            self?.presenter?.didTapSwapButton()
+        }
     }
 
     @objc private func dismissKeyboard() {
