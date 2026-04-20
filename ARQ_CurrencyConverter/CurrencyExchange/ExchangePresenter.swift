@@ -166,32 +166,23 @@ extension ExchangePresenter: ExchangePresenterProtocol {
     }
     
     func didChangeAmount(updatedField: UpdatedField, newText: String) {
-        guard var state = exchangeViewState else { return }
+        guard let state = exchangeViewState else { return }
+        
         let sanitizedText = newText.replacingOccurrences(of: ",", with: "")
         let updatedValue = amountFormatter.number(from: sanitizedText)?.doubleValue ?? 0.0
-        let quoteCurrency = (state.topCurrency == state.baseCurrency) ? state.bottomCurrency : state.topCurrency
-        guard let ticker = exchangeRates[quoteCurrency] else { return }
+        
+        let source: Currency
+        let target: Currency
         
         if updatedField == .top {
-            state.topAmount = updatedValue
-            
-            if state.topCurrency == state.baseCurrency {
-                state.bottomAmount = updatedValue * (Double(ticker.bid) ?? 0.0)
-            } else {
-                state.bottomAmount = updatedValue / (Double(ticker.ask) ?? 0.0)
-            }
-            
-        } else if updatedField == .bottom {
-            state.bottomAmount = updatedValue
-            
-            if state.bottomCurrency == state.baseCurrency {
-                state.topAmount = updatedValue * (Double(ticker.ask) ?? 0.0)
-            } else {
-                state.topAmount = updatedValue / (Double(ticker.bid) ?? 0.0)
-            }
+            source = state.topCurrency
+            target = state.bottomCurrency
+        } else {
+            source = state.bottomCurrency
+            target = state.topCurrency
         }
-        exchangeViewState = state
-        updateExchangeView(with: state, ticker: ticker)
+        
+        interactor?.calculateConversion(amount: updatedValue, sourceCurrency: source, targetCurrency: target, baseCurrency: state.baseCurrency)
     }
 }
 
@@ -260,6 +251,22 @@ extension ExchangePresenter: ExchangeInteractorOutputProtocol {
         }
         
         view?.showErrorMessage(message: message)
+    }
+    
+    func didCalculateConversion(result: Double, sourceAmount: Double, ticker: Ticker, isSourceBase: Bool) {
+        guard var state = exchangeViewState else { return }
+        
+        if (isSourceBase && state.topCurrency == state.baseCurrency) ||
+            (!isSourceBase && state.topCurrency != state.baseCurrency) {
+            state.topAmount = sourceAmount
+            state.bottomAmount = result
+        } else {
+            state.bottomAmount = sourceAmount
+            state.topAmount = result
+        }
+        
+        self.exchangeViewState = state
+        updateExchangeView(with: state, ticker: ticker)
     }
 }
 

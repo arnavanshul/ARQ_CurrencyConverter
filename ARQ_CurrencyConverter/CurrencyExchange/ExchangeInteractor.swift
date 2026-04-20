@@ -18,12 +18,19 @@ protocol ExchangeInteractorInputProtocol: AnyObject {
     func fetchCurrencyExchangeRates(currencies: [Currency])
     func fetchAvailableCurrencies()
     func fetchInitialData()
+    
+    func calculateConversion(amount: Double,
+                             sourceCurrency: Currency,
+                             targetCurrency: Currency,
+                             baseCurrency: Currency)
 }
 
 protocol ExchangeInteractorOutputProtocol: AnyObject {
     func didFetchRates(tickers: [Ticker]?)
     func didFetchAvailableCurrencies(currencies: [Currency])
     func didFailToFetchData(error: NetworkError, context: FetchContext)
+    
+    func didCalculateConversion(result: Double, sourceAmount: Double, ticker: Ticker, isSourceBase: Bool)
 }
 
 class ExchangeInteractor {
@@ -93,5 +100,27 @@ extension ExchangeInteractor: ExchangeInteractorInputProtocol {
     
     func processResponse(availableCurrencies response: [String]) {
         availableCurrencies = response.compactMap { Currency(rawValue: $0) }
+    }
+    
+    func calculateConversion(amount: Double, sourceCurrency: Currency, targetCurrency: Currency, baseCurrency: Currency) {
+        let isSourceBase = (sourceCurrency == baseCurrency)
+        let quoteCurrency = sourceCurrency == baseCurrency ? targetCurrency : sourceCurrency
+        
+        guard let ticker = tickerMap[quoteCurrency] else { return }
+        
+        let bid = Double(ticker.bid) ?? 0.0
+        let ask = Double(ticker.ask) ?? 0.0
+        
+        let result: Double
+        if isSourceBase {
+            result = amount * bid
+        } else {
+            result = amount / ask
+        }
+        
+        output?.didCalculateConversion(result: result,
+                                       sourceAmount: amount,
+                                       ticker: ticker,
+                                       isSourceBase: isSourceBase)
     }
 }
