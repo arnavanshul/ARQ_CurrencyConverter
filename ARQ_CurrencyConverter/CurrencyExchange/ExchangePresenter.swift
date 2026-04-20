@@ -69,28 +69,6 @@ class ExchangePresenter {
         self.router = router
     }
     
-    func setupViewListeners() {
-        view?.exchangeView.topCurrencyField.onCurrencyPressed = { [weak self] in
-            self?.didTapCurrency(updatedField: .top)
-        }
-        
-        view?.exchangeView.topCurrencyField.onAmountChanged = { [weak self] text in
-            self?.didChangeAmount(updatedField: .top, newText: text)
-        }
-        
-        view?.exchangeView.bottomCurrencyField.onCurrencyPressed = { [weak self] in
-            self?.didTapCurrency(updatedField: .bottom)
-        }
-        
-        view?.exchangeView.bottomCurrencyField.onAmountChanged = { [weak self] text in
-            self?.didChangeAmount(updatedField: .bottom, newText: text)
-        }
-        
-        view?.exchangeView.onSwapButtonPressed = { [weak self] in
-            self?.didTapSwapButton()
-        }
-    }
-    
     func initializeView(for ticker: Ticker, tickers: [Ticker]) {
         guard let currency = ticker.currency else { return }
         
