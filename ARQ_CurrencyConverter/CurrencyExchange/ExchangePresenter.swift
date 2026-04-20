@@ -68,43 +68,9 @@ class ExchangePresenter {
         self.interactor = interactor
         self.router = router
     }
-    
-    func initializeView(for ticker: Ticker, tickers: [Ticker]) {
-        guard let currency = ticker.currency else { return }
-        let baseAmount: Double
-        
-        if var state = exchangeViewState {
-            if state.topCurrency == state.baseCurrency {
-                baseAmount = state.topAmount
-                state.bottomCurrency = currency
-            } else {
-                state.topCurrency = currency
-                baseAmount = state.bottomAmount
-            }
-            state.tickers = tickers
-            exchangeViewState = state
-        } else {
-            baseAmount = 99
-            exchangeViewState = ExchangeViewState(baseCurrency: .USDc,
-                                                  topCurrency: .USDc,
-                                                  topAmount: baseAmount,
-                                                  bottomCurrency: currency,
-                                                  bottomAmount: 0.0,
-                                                  rateToUse: .buyingQuote,
-                                                  lastUpdatedField: .none,
-                                                  tickers: tickers)
-        }
-        
-        guard let state = exchangeViewState else { return }
-        
-        interactor?.calculateConversion(amount: baseAmount,
-                                        sourceCurrency: state.baseCurrency,
-                                        targetCurrency: currency,
-                                        baseCurrency: state.baseCurrency,
-                                        isBuyingQuote: state.rateToUse == .buyingQuote)
-    }
 }
 
+// MARK: ExchangePresenterProtocol (user interaction handling methods)
 extension ExchangePresenter: ExchangePresenterProtocol {
     func viewDidLoad() {
         view?.showLoading()
@@ -178,7 +144,43 @@ extension ExchangePresenter: ExchangePresenterProtocol {
     }
 }
 
+// MARK: View update methods
 extension ExchangePresenter {
+    func initializeView(for ticker: Ticker, tickers: [Ticker]) {
+        guard let currency = ticker.currency else { return }
+        let baseAmount: Double
+        
+        if var state = exchangeViewState {
+            if state.topCurrency == state.baseCurrency {
+                baseAmount = state.topAmount
+                state.bottomCurrency = currency
+            } else {
+                state.topCurrency = currency
+                baseAmount = state.bottomAmount
+            }
+            state.tickers = tickers
+            exchangeViewState = state
+        } else {
+            baseAmount = 99
+            exchangeViewState = ExchangeViewState(baseCurrency: .USDc,
+                                                  topCurrency: .USDc,
+                                                  topAmount: baseAmount,
+                                                  bottomCurrency: currency,
+                                                  bottomAmount: 0.0,
+                                                  rateToUse: .buyingQuote,
+                                                  lastUpdatedField: .none,
+                                                  tickers: tickers)
+        }
+        
+        guard let state = exchangeViewState else { return }
+        
+        interactor?.calculateConversion(amount: baseAmount,
+                                        sourceCurrency: state.baseCurrency,
+                                        targetCurrency: currency,
+                                        baseCurrency: state.baseCurrency,
+                                        isBuyingQuote: state.rateToUse == .buyingQuote)
+    }
+    
     private func updateExchangeView(with state: ExchangeViewState, ticker: Ticker) {
         guard let view = view else { return }
         DispatchQueue.main.async { [weak self] in
@@ -216,6 +218,7 @@ extension ExchangePresenter {
     }
 }
 
+// MARK: InteractorOutputProtocol methods
 extension ExchangePresenter: ExchangeInteractorOutputProtocol {
     func didFetchRates(tickers: [Ticker]?) {
         guard let tickers = tickers,

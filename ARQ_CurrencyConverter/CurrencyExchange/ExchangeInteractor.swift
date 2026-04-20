@@ -53,7 +53,7 @@ extension ExchangeInteractor: ExchangeInteractorInputProtocol {
         networkService.fetchAvailableCurrencies { [weak self] result in
             switch result {
             case .success(let codes):
-                self?.availableCurrencies = codes.compactMap { Currency(rawValue: $0) }
+                self?.processResponse(availableCurrencies: codes)
                 self?.fetchCurrencyExchangeRates(currencies: self?.availableCurrencies ?? [])
             case .failure(let error):
                 self?.output?.didFailToFetchData(error: error, context: .availableCurrencies)
@@ -100,7 +100,7 @@ extension ExchangeInteractor: ExchangeInteractorInputProtocol {
     }
     
     func processResponse(availableCurrencies response: [String]) {
-        availableCurrencies = response.compactMap { Currency(rawValue: $0) }
+        self.availableCurrencies = response.compactMap { Currency(rawValue: $0) }
     }
     
     func calculateConversion(amount: Double, sourceCurrency: Currency, targetCurrency: Currency, baseCurrency: Currency, isBuyingQuote: Bool) {

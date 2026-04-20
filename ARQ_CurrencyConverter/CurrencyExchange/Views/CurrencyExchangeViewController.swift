@@ -108,7 +108,9 @@ class CurrencyExchangeViewController: UIViewController {
 
 extension CurrencyExchangeViewController : CurrencyExchangeViewProtocol {
     func showLoading() {
+        loader.isHidden = false
         loader.startAnimating()
+        
         exchangeView.isHidden = true
         errorLabel.isHidden = true
     }
@@ -119,11 +121,12 @@ extension CurrencyExchangeViewController : CurrencyExchangeViewProtocol {
     }
     
     func showErrorMessage(message: String) {
+        errorLabel.isHidden = false
+        errorLabel.text = message
+        
         exchangeView.isHidden = true
         loader.stopAnimating()
         loader.isHidden = true
-        errorLabel.isHidden = false
-        errorLabel.text = message
     }
     
     func hideErrorMessage() {

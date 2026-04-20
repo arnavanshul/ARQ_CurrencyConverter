@@ -19,12 +19,6 @@ class CurrencyPickerViewController: UIViewController, UITableViewDelegate, UITab
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
-        
-//        navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "xmark"),
-//                                                            style: .plain,
-//                                                            target: self,
-//                                                            action: #selector(dismissPicker))
-//        navigationItem.rightBarButtonItem?.tintColor = .label
         navigationController?.setNavigationBarHidden(true, animated: false)
     }
     
@@ -39,7 +33,7 @@ class CurrencyPickerViewController: UIViewController, UITableViewDelegate, UITab
         
         tableView.delegate = self
         tableView.dataSource = self
-        tableView.translatesAutoresizingMaskIntoConstraints = false // Use constraints instead of frames
+        tableView.translatesAutoresizingMaskIntoConstraints = false
         
         view.addSubview(tableView)
         
@@ -61,7 +55,7 @@ class CurrencyPickerViewController: UIViewController, UITableViewDelegate, UITab
         headerContainer.backgroundColor = .clear
         
         let label = UILabel()
-        label.text = "Choose currency"
+        label.text = NSLocalizedString("currency_picker_title", value: "Choose Currency", comment: "Title for currency picker")
         label.font = UIFont.systemFont(ofSize: 28, weight: .bold)
         label.backgroundColor = .clear
         label.textColor = .label
@@ -73,10 +67,8 @@ class CurrencyPickerViewController: UIViewController, UITableViewDelegate, UITab
         closeButton.backgroundColor = .secondarySystemBackground
         closeButton.layer.cornerRadius = 15
         
-        // Add the action
         closeButton.addTarget(self, action: #selector(dismissPicker), for: .touchUpInside)
         
-        // 3. Arrange them in a Stack
         let stackView = UIStackView(arrangedSubviews: [label, closeButton])
         stackView.axis = .horizontal
         stackView.alignment = .center
@@ -86,11 +78,9 @@ class CurrencyPickerViewController: UIViewController, UITableViewDelegate, UITab
         headerContainer.addSubview(stackView)
         
         NSLayoutConstraint.activate([
-            // Standard button sizing
             closeButton.widthAnchor.constraint(equalToConstant: 30),
             closeButton.heightAnchor.constraint(equalToConstant: 30),
             
-            // Pin stack to container with padding
             stackView.leadingAnchor.constraint(equalTo: headerContainer.leadingAnchor, constant: UIConstants.mainPadding),
             stackView.trailingAnchor.constraint(equalTo: headerContainer.trailingAnchor, constant: -UIConstants.mainPadding),
             stackView.topAnchor.constraint(equalTo: headerContainer.topAnchor, constant: UIConstants.mainPadding),
@@ -116,12 +106,10 @@ class CurrencyPickerViewController: UIViewController, UITableViewDelegate, UITab
         
         let ticker = currencies[indexPath.row]
         
-        // Use your model's helper to get the Currency enum
         if let currency = ticker.currency {
             cell.flagLabel.text = currency.flag
             cell.codeLabel.text = currency.rawValue
             
-            // Check if this is the currently selected currency
             let isSelected = (currency.rawValue == selectedCurrencyCode)
             
             if isSelected {
@@ -147,6 +135,7 @@ class CurrencyPickerCell: UITableViewCell {
     
     private let infoStack: UIStackView = {
         let stack = UIStackView()
+        stack.translatesAutoresizingMaskIntoConstraints = false
         stack.spacing = UIConstants.inputVerticalSpacing
         stack.alignment = .center
         return stack
@@ -156,9 +145,10 @@ class CurrencyPickerCell: UITableViewCell {
     let codeLabel = UILabel()
     
     let selectionImageView: UIImageView = {
-        let iv = UIImageView()
-        iv.contentMode = .scaleAspectFit
-        return iv
+        let imageView = UIImageView()
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.contentMode = .scaleAspectFit
+        return imageView
     }()
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
@@ -175,9 +165,6 @@ class CurrencyPickerCell: UITableViewCell {
         
         infoStack.addArrangedSubview(flagLabel)
         infoStack.addArrangedSubview(codeLabel)
-        
-        infoStack.translatesAutoresizingMaskIntoConstraints = false
-        selectionImageView.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([
             infoStack.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: UIConstants.mainPadding),
