@@ -56,7 +56,7 @@ class NetworkService: NetworkServiceProtocol {
         }
         
 #if DEBUG
-        if true {
+        if false {
             let tickerJsonData = """
             [
                 {
