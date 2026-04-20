@@ -88,7 +88,7 @@ class ExchangePresenter {
                                                   topAmount: initialSourceValue,
                                                   bottomCurrency: currency,
                                                   bottomAmount: initialSourceValue * (Double(ticker.bid) ?? 0.0),
-                                                  rateToUse: .sellingQuote,
+                                                  rateToUse: .buyingQuote,
                                                   lastUpdatedField: .none,
                                                   tickers: tickers)
         }
@@ -136,33 +136,21 @@ extension ExchangePresenter: ExchangePresenterProtocol {
     func didTapSwapButton() {
         guard var state = exchangeViewState else { return }
         
-        let baseCurrencyAmount = state.topCurrency == state.baseCurrency ? state.topAmount : state.bottomAmount
-        state.rateToUse = (state.rateToUse == .buyingQuote) ? .sellingQuote : .buyingQuote
-        
-        let quoteCurrency = (state.topCurrency == state.baseCurrency) ? state.bottomCurrency : state.topCurrency
-        guard let ticker = exchangeRates[quoteCurrency] else { return }
-        
-        let ask = Double(ticker.ask) ?? 0.0
-        let bid = Double(ticker.bid) ?? 0.0
-        
-        let newQuoteAmount: Double
-        let rateToUse = state.rateToUse == .buyingQuote ? ask : bid
-        newQuoteAmount = baseCurrencyAmount * rateToUse
+        let baseAmount = state.topCurrency == state.baseCurrency ? state.topAmount : state.bottomAmount
         
         let tempCurrency = state.topCurrency
         state.topCurrency = state.bottomCurrency
         state.bottomCurrency = tempCurrency
         
-        if state.topCurrency == state.baseCurrency {
-            state.topAmount = baseCurrencyAmount
-            state.bottomAmount = newQuoteAmount
-        } else {
-            state.bottomAmount = baseCurrencyAmount
-            state.topAmount = newQuoteAmount
-        }
+        state.rateToUse = state.rateToUse == .buyingQuote ? .sellingQuote : .buyingQuote
         
         self.exchangeViewState = state
-        updateExchangeView(with: state, ticker: ticker)
+        
+        interactor?.calculateConversion(amount: baseAmount,
+                                        sourceCurrency: state.baseCurrency,
+                                        targetCurrency: state.topCurrency == state.baseCurrency ? state.bottomCurrency : state.topCurrency,
+                                        baseCurrency: state.baseCurrency,
+                                        isBuyingQuote: state.rateToUse == .buyingQuote)
     }
     
     func didChangeAmount(updatedField: UpdatedField, newText: String) {
@@ -194,10 +182,7 @@ extension ExchangePresenter {
         
         view.exchangeView.isHidden = false
         
-        let rateStr = state.rateToUse == .buyingQuote ? ticker.ask : ticker.bid
-        view.exchangeView.rateLabel.text = "1 \(state.baseCurrency.rawValue) = \(rateStr) \(state.topCurrency == state.baseCurrency ? state.bottomCurrency.rawValue : state.topCurrency.rawValue)"
-        
-        let rawRateStr = state.rateToUse == .buyingQuote ? ticker.ask : ticker.bid
+        let rawRateStr = state.rateToUse == .buyingQuote ? ticker.bid : ticker.ask
         var formattedRate = rawRateStr // Fallback to raw string
         if let rateDouble = Double(rawRateStr) {
             formattedRate = format(value: rateDouble, maxPrecision: 6)
