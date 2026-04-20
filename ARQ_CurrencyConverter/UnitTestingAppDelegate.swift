@@ -8,7 +8,7 @@
 import UIKit
 
 @MainActor
-class TestingAppDelegate: UIResponder, UIApplicationDelegate {
+class UnitTestingAppDelegate: UIResponder, UIApplicationDelegate {
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Return true without initializing any VIPER modules or NetworkServices
         return true
