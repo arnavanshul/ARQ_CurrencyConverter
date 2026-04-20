@@ -22,7 +22,8 @@ protocol ExchangeInteractorInputProtocol: AnyObject {
     func calculateConversion(amount: Double,
                              sourceCurrency: Currency,
                              targetCurrency: Currency,
-                             baseCurrency: Currency)
+                             baseCurrency: Currency,
+                             isBuyingQuote: Bool)
 }
 
 protocol ExchangeInteractorOutputProtocol: AnyObject {
@@ -102,7 +103,7 @@ extension ExchangeInteractor: ExchangeInteractorInputProtocol {
         availableCurrencies = response.compactMap { Currency(rawValue: $0) }
     }
     
-    func calculateConversion(amount: Double, sourceCurrency: Currency, targetCurrency: Currency, baseCurrency: Currency) {
+    func calculateConversion(amount: Double, sourceCurrency: Currency, targetCurrency: Currency, baseCurrency: Currency, isBuyingQuote: Bool) {
         let isSourceBase = (sourceCurrency == baseCurrency)
         let quoteCurrency = sourceCurrency == baseCurrency ? targetCurrency : sourceCurrency
         
@@ -111,11 +112,13 @@ extension ExchangeInteractor: ExchangeInteractorInputProtocol {
         let bid = Double(ticker.bid) ?? 0.0
         let ask = Double(ticker.ask) ?? 0.0
         
+        let rate = isBuyingQuote ? bid : ask
+        
         let result: Double
         if isSourceBase {
-            result = amount * bid
+            result = amount * rate
         } else {
-            result = amount / ask
+            result = amount / rate
         }
         
         output?.didCalculateConversion(result: result,

@@ -10,11 +10,11 @@ import UIKit
 
 enum TransactionType {
     //  Base -> Quote
-    //  Use `ask` price
+    //  Use `ask` price (almost always more than the bid price)
     case buyingQuote
     
     //  Quote -> Base
-    //  Use `bid` price
+    //  Use `bid` price (almost always less than the bid price)
     case sellingQuote
 }
 
@@ -174,6 +174,8 @@ extension ExchangePresenter: ExchangePresenterProtocol {
         let source: Currency
         let target: Currency
         
+        let isBuyingQuote = state.topCurrency == state.baseCurrency ? true : false
+        
         if updatedField == .top {
             source = state.topCurrency
             target = state.bottomCurrency
@@ -182,7 +184,7 @@ extension ExchangePresenter: ExchangePresenterProtocol {
             target = state.topCurrency
         }
         
-        interactor?.calculateConversion(amount: updatedValue, sourceCurrency: source, targetCurrency: target, baseCurrency: state.baseCurrency)
+        interactor?.calculateConversion(amount: updatedValue, sourceCurrency: source, targetCurrency: target, baseCurrency: state.baseCurrency, isBuyingQuote: isBuyingQuote)
     }
 }
 

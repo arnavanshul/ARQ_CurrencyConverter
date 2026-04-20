@@ -55,6 +55,49 @@ class NetworkService: NetworkServiceProtocol {
             return
         }
         
+#if DEBUG
+        if true {
+            let tickerJsonData = """
+            [
+                {
+                    "ask": "17.3100000000",
+                    "bid": "17.3072000000",
+                    "book": "usdc_mxn",
+                    "date": "2026-04-20T18:21:32.195775440"
+                },
+                {
+                    "ask": "3616.4868000000",
+                    "bid": "3577.1800000000",
+                    "book": "usdc_cop",
+                    "date": "2026-04-20T18:21:32.141949648"
+                },
+                {
+                    "ask": "5.0003775000",
+                    "bid": "4.9499260000",
+                    "book": "usdc_brl",
+                    "date": "2026-04-20T18:21:32.148390888"
+                },
+                {
+                    "ask": "1461.8800000000",
+                    "bid": "1456.1804250000",
+                    "book": "usdc_ars",
+                    "date": "2026-04-20T18:21:32.198939054"
+                }
+            ]
+            """
+            guard let data = tickerJsonData.data(using: .utf8) else { fatalError("Unable to convert string to Data") }
+            
+            do {
+                let decoder = JSONDecoder()
+                let response = try decoder.decode(TickerResponse.self, from: data)
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { completion(.success(response)) }
+            } catch {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { completion(.failure(.noData)) }
+            }
+            return
+        }
+#endif // DEBUG
+        
         URLSession.shared.dataTask(with: url) { data, response, error in
             // Handle transport errors
             if let error = error {
