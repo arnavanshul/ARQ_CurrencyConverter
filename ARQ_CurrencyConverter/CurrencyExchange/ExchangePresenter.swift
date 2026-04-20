@@ -71,35 +71,37 @@ class ExchangePresenter {
     
     func initializeView(for ticker: Ticker, tickers: [Ticker]) {
         guard let currency = ticker.currency else { return }
+        let baseAmount: Double
         
         if var state = exchangeViewState {
             if state.topCurrency == state.baseCurrency {
+                baseAmount = state.topAmount
                 state.bottomCurrency = currency
-                state.bottomAmount = state.topAmount * (Double(ticker.bid) ?? 0.0)
             } else {
                 state.topCurrency = currency
-                state.topAmount = state.bottomAmount * (Double(ticker.ask) ?? 0.0)
+                baseAmount = state.bottomAmount
             }
+            state.tickers = tickers
             exchangeViewState = state
         } else {
-            let initialSourceValue = 99.00
+            baseAmount = 99
             exchangeViewState = ExchangeViewState(baseCurrency: .USDc,
                                                   topCurrency: .USDc,
-                                                  topAmount: initialSourceValue,
+                                                  topAmount: baseAmount,
                                                   bottomCurrency: currency,
-                                                  bottomAmount: initialSourceValue * (Double(ticker.bid) ?? 0.0),
+                                                  bottomAmount: 0.0,
                                                   rateToUse: .buyingQuote,
                                                   lastUpdatedField: .none,
                                                   tickers: tickers)
         }
         
-        DispatchQueue.main.async {
-            if let state = self.exchangeViewState {
-                self.view?.hideLoading()
-                self.view?.hideErrorMessage()
-                self.updateExchangeView(with: state, ticker: ticker)
-            }
-        }
+        guard let state = exchangeViewState else { return }
+        
+        interactor?.calculateConversion(amount: baseAmount,
+                                        sourceCurrency: state.baseCurrency,
+                                        targetCurrency: currency,
+                                        baseCurrency: state.baseCurrency,
+                                        isBuyingQuote: state.rateToUse == .buyingQuote)
     }
 }
 
@@ -179,31 +181,37 @@ extension ExchangePresenter: ExchangePresenterProtocol {
 extension ExchangePresenter {
     private func updateExchangeView(with state: ExchangeViewState, ticker: Ticker) {
         guard let view = view else { return }
-        
-        view.exchangeView.isHidden = false
-        
-        let rawRateStr = state.rateToUse == .buyingQuote ? ticker.bid : ticker.ask
-        var formattedRate = rawRateStr // Fallback to raw string
-        if let rateDouble = Double(rawRateStr) {
-            formattedRate = format(value: rateDouble, maxPrecision: 6)
-        }
-        let quoteCurrencyCode = state.topCurrency == state.baseCurrency ? state.bottomCurrency.rawValue : state.topCurrency.rawValue
-        view.exchangeView.rateLabel.text = "1 \(state.baseCurrency.rawValue) = \(formattedRate) \(quoteCurrencyCode)"
-        
-        if !view.exchangeView.topCurrencyField.isChangingAmount {
-            view.exchangeView.topCurrencyField.updateFor(flag: state.topCurrency.flag,
-                                                         code: state.topCurrency.rawValue,
-                                                         value: self.format(value: state.topAmount, maxPrecision: 2),
-                                                         symbol: state.topCurrency.currencySymbol,
-                                                         showChevron: state.topCurrency != state.baseCurrency)
-        }
-        
-        if !view.exchangeView.bottomCurrencyField.isChangingAmount {
-            view.exchangeView.bottomCurrencyField.updateFor(flag: state.bottomCurrency.flag,
-                                                            code: state.bottomCurrency.rawValue,
-                                                            value: self.format(value: state.bottomAmount, maxPrecision: 2),
-                                                            symbol: state.bottomCurrency.currencySymbol,
-                                                            showChevron: state.bottomCurrency != state.baseCurrency)
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            
+            self.view?.hideLoading()
+            self.view?.hideErrorMessage()
+            
+            view.exchangeView.isHidden = false
+            
+            let rawRateStr = state.rateToUse == .buyingQuote ? ticker.bid : ticker.ask
+            var formattedRate = rawRateStr // Fallback to raw string
+            if let rateDouble = Double(rawRateStr) {
+                formattedRate = format(value: rateDouble, maxPrecision: 6)
+            }
+            let quoteCurrencyCode = state.topCurrency == state.baseCurrency ? state.bottomCurrency.rawValue : state.topCurrency.rawValue
+            view.exchangeView.rateLabel.text = "1 \(state.baseCurrency.rawValue) = \(formattedRate) \(quoteCurrencyCode)"
+            
+            if !view.exchangeView.topCurrencyField.isChangingAmount {
+                view.exchangeView.topCurrencyField.updateFor(flag: state.topCurrency.flag,
+                                                             code: state.topCurrency.rawValue,
+                                                             value: self.format(value: state.topAmount, maxPrecision: 2),
+                                                             symbol: state.topCurrency.currencySymbol,
+                                                             showChevron: state.topCurrency != state.baseCurrency)
+            }
+            
+            if !view.exchangeView.bottomCurrencyField.isChangingAmount {
+                view.exchangeView.bottomCurrencyField.updateFor(flag: state.bottomCurrency.flag,
+                                                                code: state.bottomCurrency.rawValue,
+                                                                value: self.format(value: state.bottomAmount, maxPrecision: 2),
+                                                                symbol: state.bottomCurrency.currencySymbol,
+                                                                showChevron: state.bottomCurrency != state.baseCurrency)
+            }
         }
     }
 }
